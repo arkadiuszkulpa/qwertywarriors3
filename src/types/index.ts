@@ -30,3 +30,45 @@ export interface SettingsState {
   sfxVolume: number;
   musicVolume: number;
 }
+
+// Leaderboard types
+export interface LeaderboardScore {
+  rank: number;
+  id: string;
+  username: string;
+  score: number;
+  wordsCompleted: number;
+  accuracy: number;
+  maxCombo: number;
+  difficultyLevel: number;
+  createdAt: string;
+}
+
+export interface ScoreSubmission {
+  username: string;
+  score: number;
+  wordsCompleted: number;
+  accuracy: number;
+  maxCombo: number;
+  difficultyLevel: number;
+}
+
+export interface LeaderboardResponse {
+  scores: LeaderboardScore[];
+  count: number;
+}
+
+export interface SubmitScoreResponse {
+  success: boolean;
+  score?: LeaderboardScore;
+  id?: string;
+  message?: string;
+}
+
+export interface LeaderboardState {
+  scores: LeaderboardScore[];
+  isLoading: boolean;
+  error: string | null;
+  lastSubmittedRank: number | null;
+  username: string;
+}

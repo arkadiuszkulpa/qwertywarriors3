@@ -5,6 +5,7 @@ import { PreloadScene } from './scenes/PreloadScene';
 import { MainMenuScene } from './scenes/MainMenuScene';
 import { GameScene } from './scenes/GameScene';
 import { GameOverScene } from './scenes/GameOverScene';
+import { LeaderboardScene } from './scenes/LeaderboardScene';
 
 // Re-export constants for backward compatibility
 export const GAME_CONFIG = GAME_CONSTANTS;
@@ -15,6 +16,9 @@ export const PHASER_CONFIG: Phaser.Types.Core.GameConfig = {
   height: GAME_CONSTANTS.HEIGHT,
   backgroundColor: GAME_CONSTANTS.BACKGROUND_COLOR,
   parent: 'game-container',
+  dom: {
+    createContainer: true, // Required for DOM elements (username input)
+  },
   physics: {
     default: 'arcade',
     arcade: {
@@ -22,5 +26,5 @@ export const PHASER_CONFIG: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, PreloadScene, MainMenuScene, GameScene, GameOverScene],
+  scene: [BootScene, PreloadScene, MainMenuScene, GameScene, GameOverScene, LeaderboardScene],
 };
