@@ -3,6 +3,7 @@ import { GAME_CONFIG } from '../config';
 import { useGameStore } from '../../store/gameStore';
 import { useLeaderboardStore } from '../../store/leaderboardStore';
 import { isApiConfigured } from '../../services/leaderboardApi';
+import type { PracticeModeConfig } from '../modes/types';
 
 export class GameOverScene extends Phaser.Scene {
   private usernameInput: Phaser.GameObjects.DOMElement | null = null;
@@ -21,6 +22,8 @@ export class GameOverScene extends Phaser.Scene {
 
     this.hasSubmitted = false;
 
+    const isRanked = gameState.currentMode === 'ranked';
+
     // Game Over title
     const title = this.add.text(width / 2, 50, 'GAME OVER', {
       fontSize: '48px',
@@ -29,8 +32,18 @@ export class GameOverScene extends Phaser.Scene {
     });
     title.setOrigin(0.5);
 
-    // Stats container - moved up to make room for leaderboard UI
-    const statsY = 110;
+    // Mode indicator
+    const modeText = isRanked ? 'RANKED' : 'PRACTICE';
+    const modeColor = isRanked ? '#00ff88' : '#ffaa00';
+    this.add
+      .text(width / 2, 90, modeText, {
+        fontSize: '14px',
+        color: modeColor,
+      })
+      .setOrigin(0.5);
+
+    // Stats container
+    const statsY = 120;
     const lineHeight = 32;
 
     // Final Score
@@ -78,14 +91,22 @@ export class GameOverScene extends Phaser.Scene {
       .rectangle(width / 2, leaderboardY, width - 100, 2, 0x444466)
       .setOrigin(0.5);
 
-    // Only show leaderboard UI if API is configured
-    if (isApiConfigured()) {
+    // Only show leaderboard UI for ranked mode with configured API
+    if (isRanked && isApiConfigured()) {
       this.createLeaderboardUI(leaderboardY + 20, gameState, leaderboardStore);
-    } else {
+    } else if (isRanked && !isApiConfigured()) {
       this.add
         .text(width / 2, leaderboardY + 40, 'Leaderboard not configured', {
           fontSize: '16px',
           color: '#666666',
+        })
+        .setOrigin(0.5);
+    } else {
+      // Practice mode
+      this.add
+        .text(width / 2, leaderboardY + 40, 'Practice Mode - Score not saved to leaderboard', {
+          fontSize: '16px',
+          color: '#ffaa00',
         })
         .setOrigin(0.5);
     }
@@ -286,7 +307,17 @@ export class GameOverScene extends Phaser.Scene {
   private restartGame(): void {
     this.cleanup();
     useLeaderboardStore.getState().clearLastRank();
-    useGameStore.getState().startGame();
+
+    const { currentMode, modeConfig } = useGameStore.getState();
+
+    if (currentMode === 'practice' && modeConfig) {
+      // Restart practice with same settings
+      useGameStore.getState().startPracticeGame(modeConfig as PracticeModeConfig);
+    } else {
+      // Restart ranked
+      useGameStore.getState().startRankedGame();
+    }
+
     this.scene.start('GameScene');
   }
 

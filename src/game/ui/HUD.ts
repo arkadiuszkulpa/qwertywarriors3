@@ -3,6 +3,7 @@ import { GAME_CONFIG } from '../config';
 import { useGameStore } from '../../store/gameStore';
 import { HealthBar } from './HealthBar';
 import { WordDisplay } from './WordDisplay';
+import type { PracticeModeConfig } from '../modes/types';
 
 export class HUD extends Phaser.GameObjects.Container {
   private scoreText!: Phaser.GameObjects.Text;
@@ -13,11 +14,13 @@ export class HUD extends Phaser.GameObjects.Container {
   private missesText!: Phaser.GameObjects.Text;
   private wordDisplay!: WordDisplay;
   private levelText!: Phaser.GameObjects.Text;
+  private modeIndicator!: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, GAME_CONFIG.HEIGHT - GAME_CONFIG.HUD_HEIGHT);
 
     this.createBackground();
+    this.createModeIndicator();
     this.createLeftSection();
     this.createCenterSection();
     this.createRightSection();
@@ -69,6 +72,21 @@ export class HUD extends Phaser.GameObjects.Container {
     this.add(divider2);
   }
 
+  private createModeIndicator(): void {
+    const { currentMode } = useGameStore.getState();
+
+    const modeText = currentMode === 'ranked' ? 'RANKED' : 'PRACTICE';
+    const modeColor = currentMode === 'ranked' ? '#00ff88' : '#ffaa00';
+
+    this.modeIndicator = this.scene.add.text(GAME_CONFIG.WIDTH / 2, 4, modeText, {
+      fontSize: '10px',
+      color: modeColor,
+      fontStyle: 'bold',
+    });
+    this.modeIndicator.setOrigin(0.5, 0);
+    this.add(this.modeIndicator);
+  }
+
   private createLeftSection(): void {
     const x = 20;
     const baseY = 18;
@@ -115,7 +133,7 @@ export class HUD extends Phaser.GameObjects.Container {
     const centerX = GAME_CONFIG.WIDTH / 2;
 
     // Target label
-    const targetLabel = this.scene.add.text(centerX, 12, 'TARGET', {
+    const targetLabel = this.scene.add.text(centerX, 16, 'TARGET', {
       fontSize: '12px',
       color: '#888888',
     });
@@ -175,8 +193,15 @@ export class HUD extends Phaser.GameObjects.Container {
     // Update word display
     this.wordDisplay.setWord(state.currentWord, state.typedPortion);
 
-    // Update health bar
-    this.healthBar.setHealth(state.health, state.maxHealth);
+    // Update health bar - check for infinite health in practice mode
+    if (
+      state.currentMode === 'practice' &&
+      (state.modeConfig as PracticeModeConfig)?.infiniteHealth
+    ) {
+      this.healthBar.setInfinite();
+    } else {
+      this.healthBar.setHealth(state.health, state.maxHealth);
+    }
 
     // Update hits/misses
     this.hitsText.setText(`HITS: ${state.totalHits}`);

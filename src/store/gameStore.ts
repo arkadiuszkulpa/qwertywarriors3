@@ -1,9 +1,13 @@
 import { create } from 'zustand';
 import { GAME_CONSTANTS } from '../game/constants';
 import type { GameState } from '../types';
+import type { PracticeModeConfig } from '../game/modes/types';
+import { RANKED_CONFIG, getRankedDifficultyForLevel } from '../game/modes/rankedConfig';
 
 interface GameActions {
   startGame: () => void;
+  startRankedGame: () => void;
+  startPracticeGame: (config: PracticeModeConfig) => void;
   pauseGame: () => void;
   resumeGame: () => void;
   resetGame: () => void;
@@ -37,16 +41,42 @@ const initialState: GameState = {
   currentTargetId: null,
   currentWord: '',
   typedPortion: '',
+  currentMode: 'ranked',
+  modeConfig: null,
 };
 
-export const useGameStore = create<GameState & GameActions>((set) => ({
+export const useGameStore = create<GameState & GameActions>((set, get) => ({
   ...initialState,
 
-  startGame: () =>
+  startRankedGame: () => {
+    const config = RANKED_CONFIG;
     set({
       ...initialState,
       isPlaying: true,
-    }),
+      currentMode: 'ranked',
+      modeConfig: config,
+      spawnInterval: config.initialSpawnInterval,
+      enemySpeed: config.initialEnemySpeed,
+      health: config.startingHealth,
+      maxHealth: config.startingHealth,
+    });
+  },
+
+  startPracticeGame: (config: PracticeModeConfig) => {
+    set({
+      ...initialState,
+      isPlaying: true,
+      currentMode: 'practice',
+      modeConfig: config,
+      spawnInterval: config.initialSpawnInterval,
+      enemySpeed: config.initialEnemySpeed,
+      health: config.startingHealth,
+      maxHealth: config.startingHealth,
+    });
+  },
+
+  // Keep backward compatibility - defaults to ranked
+  startGame: () => get().startRankedGame(),
 
   pauseGame: () => set({ isPaused: true }),
 
@@ -76,9 +106,18 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
   resetCombo: () => set({ comboCount: 0, multiplier: 1 }),
 
   takeDamage: (amount: number) =>
-    set((state) => ({
-      health: Math.max(0, state.health - amount),
-    })),
+    set((state) => {
+      // Infinite health check for practice mode
+      if (
+        state.currentMode === 'practice' &&
+        (state.modeConfig as PracticeModeConfig)?.infiniteHealth
+      ) {
+        return state;
+      }
+      return {
+        health: Math.max(0, state.health - amount),
+      };
+    }),
 
   recordHit: () => set((state) => ({ totalHits: state.totalHits + 1 })),
 
@@ -104,15 +143,19 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
   increaseDifficulty: () =>
     set((state) => {
       const newLevel = state.difficultyLevel + 1;
-      const newSpawnInterval = Math.max(
-        GAME_CONSTANTS.MIN_SPAWN_INTERVAL,
-        state.spawnInterval - 200
-      );
-      const newSpeed = state.enemySpeed + 5;
+
+      // Practice mode: no progression, just increase level counter
+      if (state.currentMode === 'practice') {
+        return { difficultyLevel: newLevel };
+      }
+
+      // Ranked mode: use standardized progression
+      const { spawnInterval, enemySpeed } = getRankedDifficultyForLevel(newLevel);
+
       return {
         difficultyLevel: newLevel,
-        spawnInterval: newSpawnInterval,
-        enemySpeed: newSpeed,
+        spawnInterval,
+        enemySpeed,
       };
     }),
 }));

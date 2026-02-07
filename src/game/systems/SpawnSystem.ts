@@ -2,8 +2,10 @@ import Phaser from 'phaser';
 import { Enemy } from '../entities/Enemy';
 import { GAME_CONFIG } from '../config';
 import { useGameStore } from '../../store/gameStore';
-import { getWordListForDifficulty, getRandomWord } from '../../data/words';
+import { getWordListForTier, getWordListForTiers, getRandomWord } from '../../data/words';
+import { getRankedDifficultyForLevel } from '../modes/rankedConfig';
 import type { EnemyConfig } from '../../types';
+import type { PracticeModeConfig } from '../modes/types';
 
 export class SpawnSystem {
   private scene: Phaser.Scene;
@@ -55,7 +57,19 @@ export class SpawnSystem {
   }
 
   private selectWord(difficultyLevel: number): string {
-    const wordList = getWordListForDifficulty(difficultyLevel);
+    const { currentMode, modeConfig } = useGameStore.getState();
+
+    let wordList: string[];
+
+    if (currentMode === 'practice' && modeConfig) {
+      // Practice mode uses selected tier
+      const practiceConfig = modeConfig as PracticeModeConfig;
+      wordList = getWordListForTier(practiceConfig.wordTier);
+    } else {
+      // Ranked mode uses level-based tier progression
+      const { wordTiers } = getRankedDifficultyForLevel(difficultyLevel);
+      wordList = getWordListForTiers(wordTiers);
+    }
 
     // Try to avoid words with same first letter as active enemies
     // This prevents targeting ambiguity

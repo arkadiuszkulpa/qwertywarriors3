@@ -54,6 +54,8 @@ export const WORD_LISTS: WordLists = {
   ],
 };
 
+import type { WordTier } from '../game/modes/types';
+
 export function getWordListForDifficulty(level: number): string[] {
   if (level <= 2) {
     return WORD_LISTS.easy;
@@ -65,6 +67,38 @@ export function getWordListForDifficulty(level: number): string[] {
     return [...WORD_LISTS.medium, ...WORD_LISTS.hard];
   }
   return [...WORD_LISTS.hard, ...WORD_LISTS.expert];
+}
+
+// Get word list for a specific tier (practice mode)
+export function getWordListForTier(tier: WordTier): string[] {
+  switch (tier) {
+    case 'easy':
+      return WORD_LISTS.easy;
+    case 'medium':
+      return WORD_LISTS.medium;
+    case 'hard':
+      return WORD_LISTS.hard;
+    case 'expert':
+      return WORD_LISTS.expert;
+    case 'mixed':
+      return [
+        ...WORD_LISTS.easy,
+        ...WORD_LISTS.medium,
+        ...WORD_LISTS.hard,
+        ...WORD_LISTS.expert,
+      ];
+  }
+}
+
+// Get word list from multiple tiers (ranked mode)
+export function getWordListForTiers(tiers: string[]): string[] {
+  const result: string[] = [];
+  for (const tier of tiers) {
+    if (tier in WORD_LISTS) {
+      result.push(...WORD_LISTS[tier as keyof WordLists]);
+    }
+  }
+  return result.length > 0 ? result : WORD_LISTS.easy;
 }
 
 export function getRandomWord(wordList: string[]): string {

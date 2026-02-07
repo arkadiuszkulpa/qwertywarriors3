@@ -3,6 +3,7 @@ import { GAME_CONSTANTS } from './constants';
 import { BootScene } from './scenes/BootScene';
 import { PreloadScene } from './scenes/PreloadScene';
 import { MainMenuScene } from './scenes/MainMenuScene';
+import { PracticeSettingsScene } from './scenes/PracticeSettingsScene';
 import { GameScene } from './scenes/GameScene';
 import { GameOverScene } from './scenes/GameOverScene';
 import { LeaderboardScene } from './scenes/LeaderboardScene';
@@ -26,5 +27,13 @@ export const PHASER_CONFIG: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, PreloadScene, MainMenuScene, GameScene, GameOverScene, LeaderboardScene],
+  scene: [
+    BootScene,
+    PreloadScene,
+    MainMenuScene,
+    PracticeSettingsScene,
+    GameScene,
+    GameOverScene,
+    LeaderboardScene,
+  ],
 };

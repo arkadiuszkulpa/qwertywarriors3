@@ -4,12 +4,16 @@ export class HealthBar extends Phaser.GameObjects.Container {
   private background: Phaser.GameObjects.Rectangle;
   private fill: Phaser.GameObjects.Rectangle;
   private border: Phaser.GameObjects.Rectangle;
+  private infiniteText: Phaser.GameObjects.Text | null = null;
   private barWidth: number;
+  private barHeight: number;
+  private isInfinite: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
     super(scene, x, y);
 
     this.barWidth = width;
+    this.barHeight = height;
 
     // Background (dark)
     this.background = scene.add.rectangle(0, 0, width, height, 0x330000);
@@ -30,6 +34,10 @@ export class HealthBar extends Phaser.GameObjects.Container {
   }
 
   setHealth(current: number, max: number): void {
+    if (this.isInfinite) {
+      this.showNormalMode();
+    }
+
     const ratio = Math.max(0, Math.min(1, current / max));
     this.fill.width = this.barWidth * ratio;
 
@@ -57,6 +65,40 @@ export class HealthBar extends Phaser.GameObjects.Container {
     } else if (ratio > 0.3) {
       this.scene.tweens.killTweensOf(this.fill);
       this.fill.setAlpha(1);
+    }
+  }
+
+  setInfinite(): void {
+    if (this.isInfinite) return;
+
+    this.isInfinite = true;
+    this.fill.setVisible(false);
+    this.background.setFillStyle(0x003300);
+
+    if (!this.infiniteText) {
+      this.infiniteText = this.scene.add.text(
+        this.barWidth / 2,
+        this.barHeight / 2,
+        '∞ INFINITE',
+        {
+          fontSize: '12px',
+          color: '#00ff88',
+          fontStyle: 'bold',
+        }
+      );
+      this.infiniteText.setOrigin(0.5);
+      this.add(this.infiniteText);
+    } else {
+      this.infiniteText.setVisible(true);
+    }
+  }
+
+  private showNormalMode(): void {
+    this.isInfinite = false;
+    this.fill.setVisible(true);
+    this.background.setFillStyle(0x330000);
+    if (this.infiniteText) {
+      this.infiniteText.setVisible(false);
     }
   }
 }

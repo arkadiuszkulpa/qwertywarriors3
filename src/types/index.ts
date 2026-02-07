@@ -5,6 +5,8 @@ export interface EnemyConfig {
   points: number;
 }
 
+import type { GameMode, ModeConfig } from '../game/modes/types';
+
 export interface GameState {
   isPlaying: boolean;
   isPaused: boolean;
@@ -23,6 +25,9 @@ export interface GameState {
   currentTargetId: string | null;
   currentWord: string;
   typedPortion: string;
+  // Mode state
+  currentMode: GameMode;
+  modeConfig: ModeConfig | null;
 }
 
 export interface SettingsState {
