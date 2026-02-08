@@ -4,6 +4,20 @@ export type GameMode = 'ranked' | 'practice';
 
 export type WordTier = 'easy' | 'medium' | 'hard' | 'expert' | 'mixed';
 
+// Batch spawning configuration
+export interface BatchLevelConfig {
+  maxLevel: number;
+  min: number;
+  max: number;
+}
+
+export interface BatchSpawnConfig {
+  enabled: boolean;
+  levelBatchSizes: BatchLevelConfig[];
+  minWordGap: number;
+  yStaggerRange: number;
+}
+
 // Base configuration shared by all modes
 export interface BaseModeConfig {
   mode: GameMode;
@@ -26,6 +40,9 @@ export interface RankedModeConfig extends BaseModeConfig {
     hard: number;
     expert: number;
   };
+  // Batch spawning
+  batchSpawning: BatchSpawnConfig;
+  maxEnemySpeed: number;
 }
 
 // Practice mode uses static user-selected settings

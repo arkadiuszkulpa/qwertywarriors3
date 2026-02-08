@@ -32,4 +32,10 @@ export const GAME_CONSTANTS = {
   // Physics
   BULLET_SPEED: 1500,
   DEFAULT_ENEMY_SPEED: 30,
+
+  // Batch spawning spacing
+  CHAR_WIDTH_ESTIMATE: 11,   // Average pixels per character at 18px font
+  STROKE_PADDING: 6,         // Extra width from text stroke (3px * 2 sides)
+  MIN_WORD_GAP: 50,          // Minimum gap between word edges
+  SPAWN_STAGGER_Y: 30,       // Vertical spread for batch spawns
 };

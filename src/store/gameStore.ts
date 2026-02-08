@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { GAME_CONSTANTS } from '../game/constants';
 import type { GameState } from '../types';
 import type { PracticeModeConfig } from '../game/modes/types';
-import { RANKED_CONFIG, getRankedDifficultyForLevel } from '../game/modes/rankedConfig';
+import { RANKED_CONFIG, getSpeedWithCap } from '../game/modes/rankedConfig';
 
 interface GameActions {
   startGame: () => void;
@@ -144,17 +144,17 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     set((state) => {
       const newLevel = state.difficultyLevel + 1;
 
-      // Practice mode: no progression, just increase level counter
+      // Practice mode: just increase level counter (batch spawning still applies)
       if (state.currentMode === 'practice') {
         return { difficultyLevel: newLevel };
       }
 
-      // Ranked mode: use standardized progression
-      const { spawnInterval, enemySpeed } = getRankedDifficultyForLevel(newLevel);
+      // Ranked mode: use soft-capped speed progression
+      // Spawn interval is now calculated per-batch in SpawnSystem
+      const enemySpeed = getSpeedWithCap(newLevel);
 
       return {
         difficultyLevel: newLevel,
-        spawnInterval,
         enemySpeed,
       };
     }),
